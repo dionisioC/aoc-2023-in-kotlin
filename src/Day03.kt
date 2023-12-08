@@ -64,8 +64,69 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        return input.size
+        val symbols: MutableSet<Point> = HashSet()
+        val gears: MutableSet<Point> = HashSet()
+        val numberAndPositions: MutableList<NumberAndPos> = ArrayList()
+        for (line in input.withIndex()) {
+            var number = ""
+            var numberPositions: MutableSet<Point> = HashSet()
+            for (character in line.value.withIndex()) {
+                if (character.value == '.') {
+                    if (number.isNotEmpty()) {
+                        numberAndPositions.add(NumberAndPos(number.toInt(), numberPositions))
+                        number = ""
+                        numberPositions = HashSet()
+                    }
+                    continue
+                } else if (character.value.isDigit()) {
+                    number += character.value
+                    numberPositions.addAll(getAdjacent(Point(line.index, character.index)))
+                } else if (character.value == '*') {
+                    if (number.isNotEmpty()) {
+                        numberAndPositions.add(NumberAndPos(number.toInt(), numberPositions))
+                        number = ""
+                        numberPositions = HashSet()
+                    }
+                    gears.add(Point(line.index, character.index))
+                } else {
+                    if (number.isNotEmpty()) {
+                        numberAndPositions.add(NumberAndPos(number.toInt(), numberPositions))
+                        number = ""
+                        numberPositions = HashSet()
+                    }
+                    symbols.add(Point(line.index, character.index))
+                }
+            }
 
+            if (number.isNotEmpty()) {
+                numberAndPositions.add(NumberAndPos(number.toInt(), numberPositions))
+            }
+        }
+
+        var result = 0
+        val adjacentGears: MutableMap<Point, MutableList<Int>> = HashMap()
+
+        for (numberAndPosition in numberAndPositions) {
+            for (gear in gears) {
+                if (numberAndPosition.adjacent.contains(gear)) {
+                    if (adjacentGears.containsKey(gear)) {
+                        adjacentGears[gear]?.add(numberAndPosition.number.toInt())
+                    } else {
+                        adjacentGears.put(gear, mutableListOf(numberAndPosition.number.toInt()))
+                    }
+                    break
+                }
+            }
+        }
+
+
+        for ((_, v) in adjacentGears) {
+            if (v.size == 2) {
+                result += v[0] * v[1]
+            }
+        }
+
+        return result
     }
 
     // test if implementation meets criteria from the description, like:
